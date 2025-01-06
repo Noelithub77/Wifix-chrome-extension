@@ -43,4 +43,4 @@ async function login(uname, password) {
 }
 login("2024BCD0023", "EVAtNy42");
 
-// export default login;
+module.exports = login;

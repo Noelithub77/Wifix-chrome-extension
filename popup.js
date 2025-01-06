@@ -8,6 +8,9 @@ document.getElementById('loginBtn').addEventListener('click', async () => {
     return;
   }
 
+  // Store credentials for background login
+  await chrome.storage.local.set({ username, password });
+
   statusDiv.textContent = 'Logging in...';
   
   try {
@@ -41,7 +44,7 @@ document.getElementById('loginBtn').addEventListener('click', async () => {
       body: postData.toString(),
     });
     
-    statusDiv.textContent = 'Login successful!';
+    statusDiv.textContent = 'Login successful! Auto-login enabled.';
   } catch (error) {
     statusDiv.textContent = 'Login failed: ' + error.message;
   }
