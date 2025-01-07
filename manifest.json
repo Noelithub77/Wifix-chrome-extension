@@ -1,15 +1,13 @@
 {
   "manifest_version": 3,
-  "name": "WiFix Login",
+  "name": "WiFix",
   "version": "1.0",
   "description": "Auto login for IIIT Kottayam wifi",
   "permissions": [
     "activeTab",
     "storage",
     "alarms",
-    "background",
-    "system.cpu",
-    "system.memory"
+    "background"
   ],
   "icons": {
     "48": "icon2.png",
