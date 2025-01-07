@@ -5,7 +5,7 @@ function keepAlive() {
   const keepAliveInterval = 20000; // 20 seconds
   setInterval(() => {
     if (isServiceWorkerActive) {
-      console.log('Service worker heartbeat');
+      console.log('Bg active');
       checkAndReconnect();
     }
   }, keepAliveInterval);

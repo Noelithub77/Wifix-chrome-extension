@@ -9,9 +9,7 @@
     "alarms",
     "background",
     "system.cpu",
-    "system.memory",
-    "tabs",
-    "scripting"
+    "system.memory"
   ],
   "icons": {
     "48": "icon2.png",
