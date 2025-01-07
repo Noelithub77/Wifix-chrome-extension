@@ -3,7 +3,16 @@
   "name": "WiFix Login",
   "version": "1.0",
   "description": "Auto login for IIIT Kottayam wifi",
-  "permissions": ["activeTab"],
+  "permissions": [
+    "activeTab",
+    "storage",
+    "alarms",
+    "background",
+    "system.cpu",
+    "system.memory",
+    "tabs",
+    "scripting"
+  ],
   "icons": {
     "48": "icon2.png",
     "128": "icon2.png"
@@ -13,7 +22,10 @@
     "default_icon": "icon2.png"
   },
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "background.js",
+    "type": "module"
   },
-  "host_permissions": ["http://172.16.222.1:1000/login"]
+  "host_permissions": [
+    "http://172.16.222.1:1000/*"
+  ]
 }
