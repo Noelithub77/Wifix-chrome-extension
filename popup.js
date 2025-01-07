@@ -1,5 +1,18 @@
 async function login(uname, password) {
   try {
+    const logoutFetched = await fetch("http://172.16.222.1:1000/logout?0307020009020400", {
+      "headers": {
+        "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+        "accept-language": "en-US,en",
+        "sec-gpc": "1",
+        "upgrade-insecure-requests": "1",
+        "Referer": "http://172.16.222.1:1000/keepalive?0307020009020400",
+        "Referrer-Policy": "strict-origin-when-cross-origin"
+      },
+      "body": null,
+      "method": "GET"
+    }).catch(() => {console.log("failed to logout")})
+
     console.log("Starting login process...");
     const response = await fetch("http://172.16.222.1:1000/login?0330598d1f22608a", {
       method: "GET",
@@ -33,6 +46,24 @@ async function login(uname, password) {
       },
       body: postData.toString(),
     });
+
+    const nowConnectedFetch = await fetch("http://172.16.222.1:1000/keepalive?0001080905090609", {
+      headers: {
+        "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+        "accept-language": "en-US,en",
+        "cache-control": "max-age=0",
+        "sec-gpc": "1",
+        "upgrade-insecure-requests": "1",
+        "Referer": "http://172.16.222.1:1000/",
+        "Referrer-Policy": "strict-origin-when-cross-origin"
+      },
+      method: "GET"
+    }).catch(() => {});
+
+    if (!nowConnectedFetch || !nowConnectedFetch.ok) {
+      console.error("Invalid credentials");
+      return false;
+    }
 
     console.log("Logged in successfully.");
     return true;
@@ -88,7 +119,7 @@ document.getElementById('loginBtn').addEventListener('click', async () => {
     if (success) {
       statusDiv.textContent = 'Login successful! Auto-login enabled.';
     } else {
-      statusDiv.textContent = 'Login failed';
+      statusDiv.textContent = 'Invalid credentials';
     }
   } catch (error) {
     statusDiv.textContent = 'Login failed: ' + error.message;
