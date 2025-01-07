@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "WiFix",
   "version": "1.0",
-  "description": "Auto login for IIIT Kottayam wifi",
+  "description": "Stay connected to IIIT Kottayam's WiFi effortlessly. Turn on the Wifixing toggle, and it automatically logs you in the background, sparing you from the login page",
   "permissions": [
     "activeTab",
     "storage",
