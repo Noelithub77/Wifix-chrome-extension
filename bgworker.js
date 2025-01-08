@@ -90,7 +90,7 @@ async function initializeAlarm() {
     delayInMinutes: 0 // Start immediately
   });
   console.log("initializeAlarm")
-  await chrome.storage.local.set({ isWifixing: true });
+  await chrome.storage.local.set({ isWifixing: true }); 
 }
 
 // Handle startup events
