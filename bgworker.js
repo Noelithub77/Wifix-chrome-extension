@@ -1,12 +1,11 @@
 let isServiceWorkerActive = false;
 
-// Keep service worker alive
 function keepAlive() {
   const keepAliveInterval = 20000; // 20 seconds
   setInterval(() => {
+    console.log('Bg active  1');
     if (isServiceWorkerActive) {
       console.log('Bg active');
-      checkAndReconnect();
     }
   }, keepAliveInterval);
 }
@@ -16,7 +15,7 @@ async function checkAndReconnect() {
     const { isWifixing } = await chrome.storage.local.get(['isWifixing']);
     if (isWifixing ?? true) {
       const creds = await chrome.storage.local.get(['username', 'password']);
-      if (creds.username && creds.password) {
+      if (creds.username && creds.password) {``
         await login(creds.username, creds.password);
       }
     }
@@ -90,6 +89,7 @@ async function initializeAlarm() {
     periodInMinutes: 0.5, // Run every 30 seconds
     delayInMinutes: 0 // Start immediately
   });
+  console.log("initializeAlarm")
   await chrome.storage.local.set({ isWifixing: true });
 }
 
@@ -104,6 +104,7 @@ chrome.runtime.onStartup.addListener(async () => {
 // Listen for alarm with error handling
 chrome.alarms.onAlarm.addListener(async (alarm) => {
   if (alarm.name === 'periodicLogin') {
+    console.log("alarm activated")
     await checkAndReconnect();
   }
 });
