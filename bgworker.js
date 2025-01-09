@@ -3,7 +3,8 @@ let isServiceWorkerActive = false;
 function keepAlive() {
   const keepAliveInterval = 20000; // 20 seconds
   setInterval(() => {
-    console.log('Bg active  1');
+    const currentTime = new Date().toLocaleString();
+    console.log(`Keep alive of bg worker at ${currentTime}`);
     if (isServiceWorkerActive) {
       console.log('Bg active');
     }
@@ -86,11 +87,11 @@ self.addEventListener('activate', (event) => {
 // Initialize alarm with shorter interval
 async function initializeAlarm() {
   await chrome.alarms.create('periodicLogin', {
-    periodInMinutes: 0.5, // Run every 30 seconds
+    periodInMinutes: 5, // Run every hour
     delayInMinutes: 0 // Start immediately
   });
   console.log("initializeAlarm")
-  await chrome.storage.local.set({ isWifixing: true }); 
+  // await chrome.storage.local.set({ isWifixing: true }); 
 }
 
 // Handle startup events
@@ -104,14 +105,16 @@ chrome.runtime.onStartup.addListener(async () => {
 // Listen for alarm with error handling
 chrome.alarms.onAlarm.addListener(async (alarm) => {
   if (alarm.name === 'periodicLogin') {
-    console.log("alarm activated")
+    const currentTime = new Date().toLocaleString();
+    console.log(`Alarm triggered at: ${currentTime}`);
     await checkAndReconnect();
   }
 });
 
 // Handle system resume
 chrome.runtime.onSuspendCanceled.addListener(() => {
-  console.log('System resume detected');
+  const currentTime = new Date().toLocaleString();
+  console.log(`Chrome tried to suspend wifix at ${currentTime}`);
   isServiceWorkerActive = true;
   checkAndReconnect();
 });
