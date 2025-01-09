@@ -1,13 +1,22 @@
+let keepAliveIntervalId;
+
 function keepAlive() {
   const keepAliveInterval = 20000; // 20 seconds
-  setInterval(async () => {
+  keepAliveIntervalId = setInterval(async () => {
     const { isWifixing } = await chrome.storage.local.get(['isWifixing']);
     const currentTime = new Date().toLocaleString();
     console.log(`Keep alive of bg worker at ${currentTime}`);
     if (isWifixing) {
-      console.log('Bg active');
+      console.log('Wifixing');
     }
   }, keepAliveInterval);
+}
+
+function stopKeepAlive() {
+  if (keepAliveIntervalId) {
+    clearInterval(keepAliveIntervalId);
+    console.log('Stopped keep alive interval');
+  }
 }
 
 function stopAllActivities() {
@@ -16,6 +25,7 @@ function stopAllActivities() {
 }
 
 async function startAllActivities() {
+  keepAlive()
   await initializeAlarm();
   await checkAndReconnect();
   console.log('Started all Wifix background activities');
@@ -77,16 +87,10 @@ async function login(uname, password) {
   }
 }
 
-// Handle installation
-self.addEventListener('install', (event) => {
-  console.log('Service Worker installing.');
-  self.skipWaiting();
-  keepAlive(); // Single call to keepAlive here
-});
-
 // Handle activation with network recovery
 self.addEventListener('activate', (event) => {
   console.log('Service Worker activating.');
+  keepAlive(); // Single call to keepAlive here
   event.waitUntil((async () => {
     await self.clients.claim();
     const { isWifixing } = await chrome.storage.local.get(['isWifixing']);
@@ -99,7 +103,7 @@ self.addEventListener('activate', (event) => {
 // Initialize alarm with shorter interval
 async function initializeAlarm() {
   await chrome.alarms.create('periodicLogin', {
-    periodInMinutes: 5, // Run every hour
+    periodInMinutes: 0.5, // Run every hour
     delayInMinutes: 0 // Start immediately
   });
   console.log("initialized Alarm")
