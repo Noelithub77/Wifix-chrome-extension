@@ -21,6 +21,7 @@ function stopKeepAlive() {
 }
 
 function stopAllActivities() {
+  stopKeepAlive()
   chrome.alarms.clearAll();
   console.log('Stopped all Wifix background activities');
 }
