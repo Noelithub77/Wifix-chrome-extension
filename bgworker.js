@@ -1,13 +1,14 @@
 let keepAliveIntervalId;
 
 function keepAlive() {
-  const keepAliveInterval = 20000; // 20 seconds
+  const keepAliveInterval = 20000;
+  console.log("keep alive activated") //20 seconds
   keepAliveIntervalId = setInterval(async () => {
     const { isWifixing } = await chrome.storage.local.get(['isWifixing']);
     const currentTime = new Date().toLocaleString();
     console.log(`Keep alive of bg worker at ${currentTime}`);
     if (isWifixing) {
-      console.log('Wifixing');
+      // console.log('Wifixing');
     }
   }, keepAliveInterval);
 }
@@ -48,7 +49,6 @@ async function checkAndReconnect() {
 
 async function login(uname, password) {
   try {
-    console.log("Starting login process...");
     const response = await fetch("http://172.16.222.1:1000/login?0330598d1f22608a", {
       method: "GET",
       headers: {
@@ -78,8 +78,8 @@ async function login(uname, password) {
       },
       body: postData.toString(),
     });
-
-    console.log("Logged in successfully.");
+    const currentTime = new Date().toLocaleString();
+    console.log(`Logged in at ${currentTime}`);
     return true;
   } catch (error) {
     console.error("Error during login:", error.message);
