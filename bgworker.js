@@ -1,24 +1,35 @@
-let isServiceWorkerActive = false;
-
 function keepAlive() {
   const keepAliveInterval = 20000; // 20 seconds
-  setInterval(() => {
+  setInterval(async () => {
+    const { isWifixing } = await chrome.storage.local.get(['isWifixing']);
     const currentTime = new Date().toLocaleString();
     console.log(`Keep alive of bg worker at ${currentTime}`);
-    if (isServiceWorkerActive) {
+    if (isWifixing) {
       console.log('Bg active');
     }
   }, keepAliveInterval);
 }
 
+function stopAllActivities() {
+  chrome.alarms.clearAll();
+  console.log('Stopped all Wifix background activities');
+}
+
+async function startAllActivities() {
+  await initializeAlarm();
+  await checkAndReconnect();
+  console.log('Started all Wifix background activities');
+}
+
 async function checkAndReconnect() {
   try {
     const { isWifixing } = await chrome.storage.local.get(['isWifixing']);
-    if (isWifixing ?? true) {
-      const creds = await chrome.storage.local.get(['username', 'password']);
-      if (creds.username && creds.password) {``
-        await login(creds.username, creds.password);
-      }
+    if (!isWifixing) {
+      return; // Exit early if Wifix is disabled
+    }
+    const creds = await chrome.storage.local.get(['username', 'password']);
+    if (creds.username && creds.password) {
+      await login(creds.username, creds.password);
     }
   } catch (error) {
     console.error('Reconnection attempt failed:', error);
@@ -70,8 +81,7 @@ async function login(uname, password) {
 self.addEventListener('install', (event) => {
   console.log('Service Worker installing.');
   self.skipWaiting();
-  isServiceWorkerActive = true;
-  keepAlive();
+  keepAlive(); // Single call to keepAlive here
 });
 
 // Handle activation with network recovery
@@ -79,8 +89,10 @@ self.addEventListener('activate', (event) => {
   console.log('Service Worker activating.');
   event.waitUntil((async () => {
     await self.clients.claim();
-    await initializeAlarm();
-    isServiceWorkerActive = true;
+    const { isWifixing } = await chrome.storage.local.get(['isWifixing']);
+    if (isWifixing ?? true) { // Default to true like popup.js
+      await initializeAlarm();
+    }
   })());
 });
 
@@ -90,16 +102,29 @@ async function initializeAlarm() {
     periodInMinutes: 5, // Run every hour
     delayInMinutes: 0 // Start immediately
   });
-  console.log("initializeAlarm")
+  console.log("initialized Alarm")
   // await chrome.storage.local.set({ isWifixing: true }); 
 }
+
+// Add storage change listener
+chrome.storage.onChanged.addListener(async (changes, namespace) => {
+  if (namespace === 'local' && changes.isWifixing) {
+    console.log('Wifix state changed:', changes.isWifixing.newValue);
+    if (changes.isWifixing.newValue) {
+      await startAllActivities();
+    } else {
+      stopAllActivities();
+    }
+  }
+});
 
 // Handle startup events
 chrome.runtime.onStartup.addListener(async () => {
   console.log('System startup detected');
-  isServiceWorkerActive = true;
-  await initializeAlarm();
-  await checkAndReconnect();
+  const { isWifixing } = await chrome.storage.local.get(['isWifixing']);
+  if (isWifixing) {
+    await startAllActivities();
+  }
 });
 
 // Listen for alarm with error handling
@@ -115,6 +140,5 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
 chrome.runtime.onSuspendCanceled.addListener(() => {
   const currentTime = new Date().toLocaleString();
   console.log(`Chrome tried to suspend wifix at ${currentTime}`);
-  isServiceWorkerActive = true;
   checkAndReconnect();
 });

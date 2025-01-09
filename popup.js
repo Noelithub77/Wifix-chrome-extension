@@ -91,12 +91,6 @@ document.getElementById('wifixToggle').addEventListener('change', async (e) => {
   const isWifixing = e.target.checked;
   document.getElementById('toggleStatus').textContent = isWifixing ? 'Wifixing' : 'Not Wifixing';
   await chrome.storage.local.set({ isWifixing });
-  
-  if (isWifixing) {
-    chrome.alarms.create('periodicLogin', { periodInMinutes: 1 });
-  } else {
-    chrome.alarms.clear('periodicLogin');
-  }
 });
 
 document.getElementById('loginBtn').addEventListener('click', async () => {
