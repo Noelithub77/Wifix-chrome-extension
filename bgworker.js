@@ -1,33 +1,9 @@
-let keepAliveIntervalId;
-
-function keepAlive() {
-  const keepAliveInterval = 20000;
-  console.log("keep alive activated") //20 seconds
-  keepAliveIntervalId = setInterval(async () => {
-    const { isWifixing } = await chrome.storage.local.get(['isWifixing']);
-    const currentTime = new Date().toLocaleString();
-    console.log(`Keep alive of bg worker at ${currentTime}`);
-    if (isWifixing) {
-      // console.log('Wifixing');
-    }
-  }, keepAliveInterval);
-}
-
-function stopKeepAlive() {
-  if (keepAliveIntervalId) {
-    clearInterval(keepAliveIntervalId);
-    console.log('Stopped keep alive interval');
-  }
-}
-
 function stopAllActivities() {
-  stopKeepAlive()
   chrome.alarms.clearAll();
   console.log('Stopped all Wifix background activities');
 }
 
 async function startAllActivities() {
-  keepAlive()
   await initializeAlarm();
   await checkAndReconnect();
   console.log('Started all Wifix background activities');
@@ -35,21 +11,20 @@ async function startAllActivities() {
 
 async function checkAndReconnect() {
   try {
-    const { isWifixing } = await chrome.storage.local.get(['isWifixing']);
-    if (!isWifixing) {
-      return; // Exit early if Wifix is disabled
-    }
-    const creds = await chrome.storage.local.get(['username', 'password']);
-    if (creds.username && creds.password) {
-      await login(creds.username, creds.password);
+    const data = await chrome.storage.local.get(['isWifixing', 'username', 'password']);
+    if (!data.isWifixing) return;
+    
+    if (data.username && data.password) {
+      await login(data.username, data.password);
     }
   } catch (error) {
     console.error('Reconnection attempt failed:', error);
   }
 }
 
-async function login(uname, password) {
+async function login(uname, password, attempt = 1) {
   try {
+    // First fetch checks connectivity:
     const response = await fetch("http://172.16.222.1:1000/login?0330598d1f22608a", {
       method: "GET",
       headers: {
@@ -57,6 +32,10 @@ async function login(uname, password) {
         Connection: "keep-alive",
       },
     });
+    if (!response.ok) {
+      console.log("IIIT's server down");
+      return false; // Add proper return on server down
+    }
     const html = await response.text();
     
     const redirectRegex = /4Tredir" value="([^"]+)"/;
@@ -72,18 +51,35 @@ async function login(uname, password) {
       password: password,
     });
 
-    await fetch("http://172.16.222.1:1000/", {
+    try {
+      const postResponse = await fetch("http://172.16.222.1:1000/", {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
       },
       body: postData.toString(),
-    });
+      });
+
+      if (!postResponse.ok) {
+      console.log("the server responded to r2 but not a ok")
+      throw new Error(`Second fetch failed on attempt ${attempt}`);
+      }
+    } catch (error) {
+      console.log("connected to IIIT but login failed on the second request ",error.message);
+      if (attempt < 4) {
+        // Use await to prevent parallel attempts
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        return login(uname, password, attempt + 1);
+      }
+      return false;
+    }
+
     const currentTime = new Date().toLocaleString();
     console.log(`Logged in at ${currentTime}`);
     return true;
   } catch (error) {
-    console.error("Error during login:", error.message);
+    console.error("Not connected to IIIT", error.message);
+    stopAllActivities();
     return false;
   }
 }
@@ -91,10 +87,10 @@ async function login(uname, password) {
 // Handle activation with network recovery
 self.addEventListener('activate', (event) => {
   console.log('Service Worker activating.');
-  keepAlive(); // Single call to keepAlive here
   event.waitUntil((async () => {
     await self.clients.claim();
     const { isWifixing } = await chrome.storage.local.get(['isWifixing']);
+    checkAndReconnect()
     if (isWifixing ?? true) { // Default to true like popup.js
       await initializeAlarm();
     }
@@ -108,7 +104,6 @@ async function initializeAlarm() {
     delayInMinutes: 0 // Start immediately
   });
   console.log("initialized Alarm")
-  // await chrome.storage.local.set({ isWifixing: true }); 
 }
 
 // Add storage change listener
@@ -147,3 +142,11 @@ chrome.runtime.onSuspendCanceled.addListener(() => {
   console.log(`Chrome tried to suspend wifix at ${currentTime}`);
   checkAndReconnect();
 });
+
+// Make connection change handler async
+navigator.connection.addEventListener("change", onConnectionChange);
+function onConnectionChange() {
+  const currentTime = new Date().toLocaleString();
+  console.log(`wifi changed at: ${currentTime}`);
+  startAllActivities();
+}

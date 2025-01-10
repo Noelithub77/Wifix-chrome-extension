@@ -21,6 +21,10 @@ async function login(uname, password) {
         Connection: "keep-alive",
       },
     });
+    if (!response.ok) {
+      console.log("Not connected to IIIT network");
+      return "notconnected";
+    }
     const html = await response.text();
     
     // Replace DOM parsing with regex
@@ -103,14 +107,13 @@ document.getElementById('loginBtn').addEventListener('click', async () => {
     return;
   }
 
-  // Store credentials for background login
-  await chrome.storage.local.set({ username, password });
-
   statusDiv.textContent = 'Logging in...';
   
   try {
-    const success = await login(username, password);
-    if (success) {
+    const result = await login(username, password);
+    if (result === 'notconnected') {
+      statusDiv.textContent = 'Not connected to IIIT Kottayam';
+    } else if (result) {
       statusDiv.textContent = 'Login successful! Auto-login enabled.';
     } else {
       statusDiv.textContent = 'Invalid credentials';
