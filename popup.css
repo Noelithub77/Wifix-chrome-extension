@@ -180,3 +180,32 @@ input:checked + .slider:before {
   width: 100%;
   font-size: 14px;
 }
+
+.footer {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 12px;
+  color: #888;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.footer p {
+  margin: 0;
+}
+
+.footer a {
+  color: #bbb;
+  text-decoration: none;
+}
+
+.footer a:hover {
+  color: #fff;
+}
+
+.footer .dev-info {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}

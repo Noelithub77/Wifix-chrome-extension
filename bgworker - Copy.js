@@ -106,7 +106,7 @@ self.addEventListener('activate', (event) => {
 // Initialize alarm with shorter interval
 async function initializeAlarm() {
   await chrome.alarms.create('periodicLogin', {
-    periodInMinutes: 5, // Run every 5 mins
+    periodInMinutes: 5, // Run every hour
     delayInMinutes: 0 // Start immediately
   });
   console.log("initialized Alarm")
