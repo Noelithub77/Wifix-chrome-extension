@@ -108,6 +108,8 @@ document.getElementById('loginBtn').addEventListener('click', async () => {
   }
 
   statusDiv.textContent = 'Logging in...';
+
+  await chrome.storage.local.set({ username, password });
   
   try {
     const result = await login(username, password);
