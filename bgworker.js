@@ -133,6 +133,15 @@ chrome.runtime.onStartup.addListener(async () => {
   }
 });
 
+// Handle installation events
+chrome.runtime.onInstalled.addListener(async () => {
+  console.log('Extension installed or updated');
+  const { isWifixing } = await chrome.storage.local.get(['isWifixing']);
+  if (isWifixing) {
+    await startAllActivities();
+  }
+});
+
 // Listen for alarm with error handling and mutex
 let isReconnecting = false;
 chrome.alarms.onAlarm.addListener(async (alarm) => {
